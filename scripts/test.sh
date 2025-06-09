@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-echo "task version =" $(task --version)
-echo "crane version =" $(crane version)
-echo "envconsul version =" $(envconsul -v)
+echo "task version = " "$(task --version)"
+echo "crane version = " "$(crane version)"
+echo "envconsul version = " "$(envconsul -v)"
 
 echo ""
 
