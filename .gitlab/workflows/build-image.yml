@@ -1,0 +1,45 @@
+include:
+  - project: '$GITLAB_CI_PATH'
+    ref: '$GITLAB_CI_REF_NAME'
+    file: '/ext/.build_docker_image.yml'
+
+workflow:
+  name: "Build $BUILD_IMAGE_NAME:$BUILD_IMAGE_TAG,$BUILD_IMAGE_TAGS"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+
+
+build_image:
+  stage: build
+  extends:
+    - .build_image
+  variables:
+    CACHE_IMAGE: $CI_REGISTRY/$CI_REGISTRY_PATH/$BUILD_IMAGE_NAME:buildcache
+
+test_image:
+  stage: test
+  extends:
+    - .test_image
+  needs:
+    - job: build_image
+      artifacts: false
+  script:
+    - pwd
+    - ./scripts/test.sh
+  variables:
+    IMAGE_TAGS: $BUILD_IMAGE_TAG
+
+
+tag_image:
+  stage: release
+  extends:
+    - .tag_image
+  needs:
+    - job: test_image
+      artifacts: false
+
+
+cleanup_build:
+  stage: cleanup
+  extends:
+    - .cleanup_build

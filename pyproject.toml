@@ -402,3 +402,16 @@ post_commit_hooks = []
 
 [[tool.bumpversion.files]]
 filename = "src/gitlab_ci/__init__.py"
+
+[[tool.bumpversion.files]]
+filename = ".gitlab/.build.env.yml"
+
+
+[[tool.bumpversion.files]]
+filename = "Dockerfile"
+
+[[tool.bumpversion.files]]
+filename = "Dockerfile"
+search = "created=\\d{{4}}-\\d{{2}}-\\d{{2}}T\\d{{2}}:\\d{{2}}:\\d{{2}}Z"
+replace = "created={utcnow:%Y-%m-%dT%H:%M:%SZ}"
+regex = true

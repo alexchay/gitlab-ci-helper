@@ -1,0 +1,85 @@
+include:
+  - local: "/.gitlab/.build.env.yml"
+  - local: "/.gitlab/matrix.yml"
+  - project: '$GITLAB_CI_PATH'
+    ref: '$GITLAB_CI_REF_NAME'
+    file: '/ext/.gitlab-ci_py.yml'
+  - project: '$GITLAB_CI_PATH'
+    ref: '$GITLAB_CI_REF_NAME'
+    file: '/ext/.build_docker_image.yml'
+
+workflow:
+  rules:
+    - !reference [.workflow_rules, release]
+    - !reference [.workflow_rules, workflow_dispatch]
+    - !reference [.workflow_rules, commit_branches]
+    - !reference [.workflow_rules, schedule]
+
+.rules:
+  pytesting:
+    - !reference [.optimize_pipeline_rules, if_source_files_changed]
+    - !reference [.optimize_pipeline_rules, otherwise_never]
+    - when: always
+  build_image:
+    - !reference [.workflow_rules, release]
+    - !reference [.workflow_rules, workflow_dispatch]
+    - !reference [.workflow_rules, schedule]
+
+variables:
+  DOCKER_BUILD_ARGS: >-
+    --build-arg BASE_IMAGE_NAME --build-arg BASE_IMAGE_TAG --build-arg PYTHON_VERSION
+
+
+###### VALIDATE ######
+validate_dockerfile:
+  stage: validate
+  extends:
+    - .validate_dockerfile
+
+validate_shell:
+  stage: validate
+  extends:
+    - .validate_shell
+
+static_analysis:
+  extends:
+    - .static_analysis
+    - .parallel_matrix
+  stage: validate
+  rules: !reference [.rules, pytesting]
+
+pytesting:
+  extends:
+    - .pytesting
+    - .parallel_matrix
+  stage: validate
+  rules: !reference [.rules, pytesting]
+
+
+###### BUILD IMAGE ######
+trigger_build_image:
+  stage: build
+  rules: !reference [.rules, build_image]
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  trigger:
+    include:
+      - local: '/.gitlab/workflows/build-image.yml'
+    forward:
+      pipeline_variables: true
+    strategy: depend
+  resource_group: $CI_COMMIT_SHORT_SHA
+
+
+###### RELEASE ######
+changelog:
+  stage: release
+  extends:
+    - .changelog
+
+release:
+  stage: release
+  extends:
+    - .release
+  variables:
+    DELETE_EXISTING_RELEASE: "true"

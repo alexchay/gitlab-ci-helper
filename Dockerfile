@@ -31,7 +31,15 @@ FROM hashicorp/envconsul AS envconsul
 
 FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
-LABEL maintainer="Alexander Chaykovskiy <alexchay@gmail.com>"
+LABEL \
+    org.opencontainers.image.authors="Alexander Chaykovskiy  https://github.com/alexchay" \
+    org.opencontainers.image.created=2025-06-07T14:35:27Z \
+    org.opencontainers.image.url=https://github.com/alexchay/gitlab-ci-helper \
+    org.opencontainers.image.documentation=https://github.com/alexchay/gitlab-ci-helper\
+    org.opencontainers.image.source=https://github.com/alexchay/gitlab-ci-helper \
+    org.opencontainers.image.version=0.2.0 \
+    org.opencontainers.image.licenses=MIT
+
 
 USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -53,6 +61,7 @@ RUN \
 # hadolint ignore=SC2086
 RUN <<EOT
     set -ex
+    mkdir -p /etc/ssh
     chown -R :$GROUPNAME /etc/ssh
     chmod -R g+rwx /etc/ssh
     echo "$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/tee" > /etc/sudoers.d/$USERNAME
