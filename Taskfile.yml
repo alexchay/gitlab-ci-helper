@@ -120,6 +120,7 @@ tasks:
   test-suite:
     desc: Run all tests
     cmds:
+      - task: install-with-devtest
       - task: static-analysis
       - task: pytest:all-cov
 
@@ -195,14 +196,14 @@ tasks:
   build-image:
     desc: Build docker image
     cmds:
+      - task: install
       - rm -rf dist/
-      - task build
       - |
         echo "Build from base image ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}"
         export DOCKER_BUILDKIT={{.DOCKER_BUILDKIT}}
         docker buildx build {{.DOCKER_BUILD_ARGS}} \
         --progress plain \
-        -t local/${IMAGE_NAME}:${IMAGE_TAG} .
+        -t local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} .
 
   rebuild-image:
     desc: ReBuild docker image
@@ -217,8 +218,8 @@ tasks:
       - |
         docker run --rm -it {{.DOCKER_RUN_ARGS}} \
         -e IMAGE_TAGS=${IMAGE_TAG} \
-        local/${IMAGE_NAME}:${IMAGE_TAG} bash \
-        -c "cd /build && ./scripts/test.sh"
+        local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} bash \
+        -c 'cp -R /build/{src,scripts,tests} $HOME/app && cd $HOME/app && ./scripts/test.sh'
 
   build-and-test:
     desc: Build and test docker image
@@ -232,7 +233,7 @@ tasks:
       - task: build-image
       - |
         docker run --rm -it {{.DOCKER_RUN_ARGS}} \
-        local/${IMAGE_NAME}:${IMAGE_TAG} bash \
+        local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} bash \
         -c "cd /build && bash"
 
   bump-calver:

@@ -1,5 +1,13 @@
 #!/bin/bash
 
+set -euo pipefail
+
+echo "task version =" $(task --version)
+echo "crane version =" $(crane version)
+echo "envconsul version =" $(envconsul -v)
+
+echo ""
+
 # This script is used to run tests in the GitLab CI environment.
 export GITLAB_CI_DIR=$(pwd)
 # Get the directory of this script

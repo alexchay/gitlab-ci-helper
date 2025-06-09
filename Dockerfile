@@ -1,0 +1,73 @@
+ARG PYTHON_VERSION="defval"
+ARG BASE_IMAGE_NAME="defval"
+ARG BASE_IMAGE_TAG="defval"
+
+FROM ghcr.io/astral-sh/uv:python$PYTHON_VERSION-bookworm-slim AS builder
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
+
+WORKDIR /app
+#COPY pyproject.toml uv.lock /app/
+
+RUN \
+    --mount=type=cache,target=root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-default-groups --no-dev --no-editable \
+    && uv tool install go-task-bin
+
+COPY src /app/src
+COPY README.md LICENSE /app/
+RUN \
+    --mount=type=cache,target=root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-default-groups --no-dev --no-editable
+
+FROM gcr.io/go-containerregistry/crane AS crane
+FROM hashicorp/envconsul AS envconsul
+
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
+
+LABEL maintainer="Alexander Chaykovskiy <alexchay@gmail.com>"
+
+USER root
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# hadolint ignore=SC2086
+RUN \
+  --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+    curl \
+    jq \
+    sudo \
+    time \
+    tree \
+    && \
+    rm -rf /tmp/* \
+    && rm -Rf /usr/share/doc && rm -Rf /usr/share/man
+
+
+# hadolint ignore=SC2086
+RUN <<EOT
+    set -ex
+    chown -R :$GROUPNAME /etc/ssh
+    chmod -R g+rwx /etc/ssh
+    echo "$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/tee" > /etc/sudoers.d/$USERNAME
+EOT
+
+USER $USERNAME
+WORKDIR $HOME/app
+
+COPY --from=builder --chown=$USER_UID:$USER_GID --chmod=755 /root/.local/bin/task $HOME/.local/bin/task
+COPY --from=crane --chown=$USER_UID:$USER_GID --chmod=755 /ko-app/crane $HOME/.local/bin/crane
+COPY --from=envconsul --chown=$USER_UID:$USER_GID --chmod=755 /bin/envconsul $HOME/.local/bin/envconsul
+COPY --from=builder --chown=$USER_UID:$USER_GID /app/.venv $HOME/app/.venv
+
+RUN find "$HOME/app/.venv" -type f -exec sed -i '1s|^#!.*python3$|#!/usr/bin/env python3|' {} +
+
+ENV \
+    PATH=$HOME/app/.venv/bin:$PATH \
+    GITLAB_CI_DIR=$HOME/app

@@ -1,0 +1,14 @@
+.mypy_cache/
+.ruff_cache/
+.venv/
+.vscode/
+dist/
+ext/
+scripts/
+taskfiles/
+test-reports/
+tests/
+.*
+commitlint.config.js
+CHANGELOG.md
+Taskfile.yml

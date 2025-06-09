@@ -544,7 +544,7 @@ wheels = [
 
 [[package]]
 name = "gitlab-ci"
-version = "2025.5.31.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
