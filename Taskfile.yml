@@ -112,6 +112,11 @@ tasks:
       - task: mypy:check
       - task: black:check-dry
 
+  test-shell:
+    desc: Run shell scripts tests
+    cmds:
+      - uv run scripts/test.sh
+
   test-suite:
     desc: Run all tests
     cmds:

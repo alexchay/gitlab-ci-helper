@@ -1,0 +1,35 @@
+vault {
+  ssl {
+    enabled = true
+    verify  = true
+  }
+  renew_token = false
+  retry {
+    enabled = false
+  }
+}
+
+upcase = true
+log_level = "info"
+
+{% for secret in data.secrets %}
+secret {
+{% if secret.path is defined %}
+    path = "{{ secret.path }}"
+{% endif %}
+{% if secret.format is defined %}
+    format = "{{ secret.format }}"
+{% endif %}
+{% if secret.no_prefix is defined %}
+    no_prefix = {% if secret.no_prefix %}true{% else %}false{% endif %}
+
+{% endif %}
+}
+{% endfor %}
+
+exec {
+  env {
+     denylist = ["VAULT_TOKEN"]
+  }
+  splay = "2s"
+}

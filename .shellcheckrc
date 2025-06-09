@@ -1,0 +1,28 @@
+# Enable external sources
+external-sources=true
+
+# Enable all checks
+# enable=all
+
+# Suggest ${VAR} in place of $VAR
+# enable=require-variable-braces
+
+# Ignore certain checks
+# SC1090: Can't follow non-constant source
+# SC1091: Not following
+# SC2086: Double quote to prevent globbing and word splitting.
+# SC2155: Declare and assign separately to avoid masking return values
+disable=SC1090,SC2155,SC2086
+
+# Set the maximum number of allowed problems
+max-allowed=10
+
+# Set the severity level for certain checks
+# SC2001: See if you can use ${variable//search/replace} instead
+severity=SC2001:warning
+
+# Set the shell to use for checking
+# shell=bash
+
+# Set the shell options to use for checking
+# shell-options=-e -u -o pipefail
