@@ -1,0 +1,8 @@
+file: .vault/envconsul.hcl
+role: netbox_import_to_gitlab
+secrets:
+ - path: kv/netbox/api/read
+   format: netbox_{{ key }}
+   no_prefix: true
+ - path: kv/ps/{{env \"CI_PROJECT_NAME_LC\"}}/{{env \"CI_ENVIRONMENT_NAME_LC\"}}/admin
+   no_prefix: false

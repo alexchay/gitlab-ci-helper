@@ -1,0 +1,14 @@
+{% for secret in data.secrets %}
+secret {
+{% if secret.path is defined %}
+    path = "{{ secret.path }}"
+{% endif %}
+{% if secret.format is defined %}
+    format = "{{ secret.format }}"
+{% endif %}
+{% if secret.no_prefix is defined %}
+    no_prefix = {% if secret.no_prefix %}true{% else %}false{% endif %}
+
+{% endif %}
+}
+{% endfor %}

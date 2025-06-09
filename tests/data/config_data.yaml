@@ -1,0 +1,5 @@
+
+secrets:
+ - path: kv/netbox/api/read
+   format: netbox_{{ key }}
+   no_prefix: true
