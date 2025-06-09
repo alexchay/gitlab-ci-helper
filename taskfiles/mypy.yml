@@ -1,0 +1,8 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+  check:
+    desc: Run static type checker mypy
+    cmds:
+      - set -x && {{.SET_VENV}} mypy --install-types --non-interactive --ignore-missing-imports {{.CODE_DIRS}}

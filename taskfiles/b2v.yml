@@ -1,0 +1,19 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+
+  show-bump:
+    desc: Visualize the versioning path
+    cmds:
+      - uvx bump-my-version show-bump
+
+  show-version:
+    desc: Show the current version
+    cmds:
+      - uvx bump-my-version show current_version
+
+  show-next-build:
+    desc: Show the next version
+    cmds:
+      - uvx bump-my-version show --increment build new_version

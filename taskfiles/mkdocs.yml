@@ -1,0 +1,26 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+
+  build:
+    desc: Build docs
+    cmds:
+      - set -x && {{.SET_VENV}} mkdocs build --clean --strict
+
+  publish:
+    desc: Publish docs to GitHub Pages
+    cmds:
+      - set -x && {{.SET_VENV}} mkdocs gh-deploy --force
+
+  test:
+    desc: Verify links in the docs
+    cmds:
+      - PATH=$PATH:. command -v htmltest >/dev/null 2>&1 || { curl https://htmltest.wjdp.uk | bash -s -- -b .; }
+      - PATH=$PATH:. htmltest -c docs/htmltest.yml
+
+  build-test:
+    desc: Build and test link in the docs
+    cmds:
+      - task: build
+      - task: test

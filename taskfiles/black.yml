@@ -1,0 +1,14 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+  check:
+    desc: Run code formatter
+    cmds:
+      - set -x && {{.SET_VENV}} black {{.CODE_DIRS}} --diff
+
+  check-dry:
+    desc: Verify code formatting
+    cmds:
+      - set -x && {{.SET_VENV}} black {{.CODE_DIRS}} --check --diff
+

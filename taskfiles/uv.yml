@@ -1,0 +1,33 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+
+  version:
+    desc: Check uv version
+    cmds:
+      - uv self version
+
+  bin-install:
+    desc: Install UV
+    cmds:
+      - curl -LsSf https://astral.sh/uv/install.sh | sh
+      - task: version
+
+  bin-remove:
+    desc: Remove UV
+    cmds:
+      - |
+          # Clean up stored data
+          uv cache clean
+          rm -r "$(uv python dir)"
+          rm -r "$(uv tool dir)"
+          # Remove the uv and uvx binaries
+          rm ~/.local/bin/uv ~/.local/bin/uvx
+
+  bin-update:
+    desc: Update UV
+    cmds:
+      - task: version
+      - uv self update
+      - task: version

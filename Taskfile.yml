@@ -1,0 +1,260 @@
+# https://taskfile.dev
+version: "3"
+dotenv: ['.env']
+vars:
+  CODE_DIRS: src/ tests/
+  PYTHON: python3
+  SET_VENV: uv run
+  DOCKER_BUILDKIT: 1
+  DOCKER_BUILD_ARGS: >-
+    --build-arg HTTP_PROXY --build-arg HTTPS_PROXY --build-arg NO_PROXY
+    --build-arg CI_REGISTRY
+    --build-arg PYTHON_VERSION
+    --build-arg BASE_IMAGE_NAME --build-arg BASE_IMAGE_TAG
+  DOCKER_RUN_ARGS: >-
+    -e HTTP_PROXY -e HTTPS_PROXY -e NO_PROXY
+    -v $(pwd)/:/build/
+
+
+includes:
+  b2v:
+    taskfile: ./taskfiles/b2v.yml
+  black:
+    taskfile: ./taskfiles/black.yml
+  docs:
+    taskfile: ./taskfiles/mkdocs.yml
+  mypy:
+    taskfile: ./taskfiles/mypy.yml
+  pre-commit:
+    taskfile: ./taskfiles/pre-commit.yml
+  pylint:
+    taskfile: ./taskfiles/pylint.yml
+  pytest:
+    taskfile: ./taskfiles/pytest.yml
+  ruff:
+    taskfile: ./taskfiles/ruff.yml
+  uv:
+    taskfile: ./taskfiles/uv.yml
+
+
+tasks:
+  env:
+    desc: Print environment variables
+    cmds:
+      - |
+        set -a; source .env; set +a;
+        env | grep -E '(HOME|PATH|IMAGE|DOCKER|TAG|PYTHON|REGISTRY|URL|CI_)'
+
+  install:
+    desc: Install current and required dependencies
+    cmds:
+      - uv sync --locked --no-default-groups --no-dev --no-editable
+      - task: export
+
+  install-all:
+    desc: Install all dependencies including the current project
+    cmds:
+      - uv sync --all-groups
+
+  install-only-deps:
+    desc: Install only the dependencies and not including the current project
+    cmds:
+      - uv sync --no-install-project --all-groups
+
+  install-only-main:
+    desc: Install required dependencies
+    cmds:
+      - uv sync --no-install-project --no-default-groups --no-dev
+      - task: export
+
+  install-with-dev:
+    desc: Install required dependencies
+    cmds:
+      - uv sync --group dev
+
+  install-with-test:
+    desc: Install required dependencies
+    cmds:
+      - uv sync --group test
+
+  install-with-devtest:
+    desc: Install required dependencies
+    cmds:
+      - uv sync --group dev --group test
+
+  export:
+    desc: Export dependencies
+    cmds:
+      - uv export -o requirements.txt --no-install-project --no-default-groups --no-hashes --no-header --no-editable --quiet
+      # - poetry export -f requirements.txt --output requirements.txt --without-hashes --only main
+
+  clean:
+    desc: Clean up the installed dependencies
+    cmds:
+      - rm -rf .venv
+
+  reinstall:
+    desc: Clean up and reinstall required dependencies
+    cmds:
+      - task: clean
+      - task: install
+
+  update:
+    desc: Update dependencies
+    cmds:
+      - uv sync --no-install-project --all-groups --upgrade
+
+  static-analysis:
+    desc: Run code formatter check, linting, static type analysis
+    cmds:
+      - task: pylint:check
+      - task: ruff:check
+      - task: mypy:check
+      - task: black:check-dry
+
+  test-suite:
+    desc: Run all tests
+    cmds:
+      - task: static-analysis
+      - task: pytest:all-cov
+
+  test-vault:
+    desc: Run vault tests
+    cmds:
+      - tests/vault/test_generate_envconsul_config.sh
+      - python -m pytest -m vault -x -l -vv -s --import-mode prepend
+
+  test-suite-py3.*:
+    desc: Run all tests with Python 3.*
+    cmds:
+      - task: pylint:check
+        vars:
+          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+      - task: ruff:check
+        vars:
+          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+      - task: mypy:check
+        vars:
+          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+      - task: black:check-dry
+        vars:
+          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+      - task: pytest:all-cov
+        vars:
+          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+
+  shell-check:
+    desc: Run static analysis tool (linter) for shell scripts
+    cmds:
+      - >-
+          docker run --rm -it {{.DOCKER_RUN_ARGS}}
+          koalaman/shellcheck-alpine:latest
+          sh -c "shellcheck --version && cd /build && echo 'Checking...' && find scripts -name '*.sh' -exec shellcheck {} + && echo 'Done'"
+
+  dockerfile-check:
+    desc: Run static analysis tool (linter) for Dockerfile
+    cmds:
+      - >-
+          docker run --rm -it {{.DOCKER_RUN_ARGS}}
+          hadolint/hadolint:latest-alpine
+          sh -c 'hadolint --version && cd /build && echo "Checking..." && hadolint Dockerfile && echo "Done"'
+
+  init-git:
+    desc: Initialize git repository
+    cmds:
+      - git init
+      - git add LICENSE
+      - git commit -m "Initial commit"
+      - git branch -M main
+
+  init:
+    desc: Initialize project
+    cmds:
+      - task: init-git
+      - task: install
+      - task: pre-commit:install
+      - task: build
+      - task: test-suite
+      - task: default
+
+  build:
+    desc: Build package
+    cmds:
+      -  uv build --sdist --wheel --verbose
+
+  run:
+    desc: Run the main application
+    cmds:
+      -  uv run gitlab-ci
+
+  build-image:
+    desc: Build docker image
+    cmds:
+      - rm -rf dist/
+      - task build
+      - |
+        echo "Build from base image ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}"
+        export DOCKER_BUILDKIT={{.DOCKER_BUILDKIT}}
+        docker buildx build {{.DOCKER_BUILD_ARGS}} \
+        --progress plain \
+        -t local/${IMAGE_NAME}:${IMAGE_TAG} .
+
+  rebuild-image:
+    desc: ReBuild docker image
+    cmds:
+      - task: build-image
+        vars:
+          DOCKER_BUILD_ARGS: '{{.DOCKER_BUILD_ARGS}} --no-cache'
+
+  test-image:
+    desc: Test docker image
+    cmds:
+      - |
+        docker run --rm -it {{.DOCKER_RUN_ARGS}} \
+        -e IMAGE_TAGS=${IMAGE_TAG} \
+        local/${IMAGE_NAME}:${IMAGE_TAG} bash \
+        -c "cd /build && ./scripts/test.sh"
+
+  build-and-test:
+    desc: Build and test docker image
+    cmds:
+      - task: build-image
+      - task: test-image
+
+  run-image:
+    desc: Run docker image
+    cmds:
+      - task: build-image
+      - |
+        docker run --rm -it {{.DOCKER_RUN_ARGS}} \
+        local/${IMAGE_NAME}:${IMAGE_TAG} bash \
+        -c "cd /build && bash"
+
+  bump-calver:
+    desc: Bump Cal version
+    cmds:
+      - task: bump-calver-patch
+
+  bump-calver-patch:
+    desc: Bump Cal version
+    cmds:
+      - uvx bump-my-version bump --verbose patch
+
+  bump-calver-release:
+    desc: Bump Cal version
+    cmds:
+      - uvx bump-my-version bump --verbose release
+
+  changelog:
+    desc: Generate changelog
+    cmds:
+      - >-
+        docker run --rm -it {{.DOCKER_RUN_ARGS}}
+        --entrypoint ""
+        ghcr.io/orhun/git-cliff/git-cliff:latest
+        sh -c "git-cliff --version && cd /build && git-cliff -r . --current -o /tmp/CHANGELOG.md && echo 'Changelog generated' && cat /tmp/CHANGELOG.md"
+
+  create-gh-release:
+    desc: Create GitHub release
+    cmds:
+      - gh release create $(uvx bump-my-version show current_version) --generate-notes

@@ -1,0 +1,20 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+  cov:
+    desc: Run "last-failed" tests with coverage
+    cmds:
+      - set -x && {{.SET_VENV}} pytest tests -vv -s --lf -x -l --import-mode prepend --cov=src --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=80 --cov-branch
+  nocov:
+    desc: Run "last-failed" tests without coverage
+    cmds:
+      - set -x && {{.SET_VENV}} pytest tests -vv -s --lf -x -l --import-mode prepend
+  all-cov:
+    desc: Run all tests with coverage
+    cmds:
+      - set -x && {{.SET_VENV}} pytest tests -vv -s -l --import-mode prepend --cov=src --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=80 --cov-branch
+  all-nocov:
+    desc: Run tests
+    cmds:
+      - set -x && {{.SET_VENV}} pytest tests -vv -s -l --import-mode prepend
