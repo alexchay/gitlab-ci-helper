@@ -1,0 +1,6 @@
+jinja2==3.1.6
+    # via gitlab-ci
+markupsafe==3.0.2
+    # via jinja2
+pyyaml==6.0.2
+    # via gitlab-ci
