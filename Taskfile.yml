@@ -250,6 +250,21 @@ tasks:
     cmds:
       - uvx bump-my-version bump --verbose release
 
+  bump-major:
+    desc: Bump major version
+    cmds:
+      - uvx bump-my-version bump --verbose major
+
+  bump-minor:
+    desc: Bump minor version
+    cmds:
+      - uvx bump-my-version bump --verbose minor
+
+  bump-patch:
+    desc: Bump patch version
+    cmds:
+      - uvx bump-my-version bump --verbose patch
+
   changelog:
     desc: Generate changelog
     cmds:

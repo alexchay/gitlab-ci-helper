@@ -6,7 +6,7 @@
 .DS_Store
 *.retry
 .gitmodules
-
+.vscode
 
 ### Python ###
 ## https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore

@@ -16,4 +16,4 @@ tasks:
   show-next-build:
     desc: Show the next version
     cmds:
-      - uvx bump-my-version show --increment build new_version
+      - uvx bump-my-version show --increment minor new_version
