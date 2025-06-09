@@ -7,3 +7,8 @@ tasks:
     cmds:
       - set -x && {{.SET_VENV}} pre-commit install
       - set -x && {{.SET_VENV}} pre-commit install --hook-type commit-msg
+
+  run:
+    desc: Run pre-commit hooks
+    cmds:
+      - set -x && {{.SET_VENV}} pre-commit run
