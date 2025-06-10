@@ -1,12 +1,30 @@
 include:
   - local: "/.gitlab/.build.env.yml"
   - local: "/.gitlab/matrix.yml"
+  - remote: '$GITLAB_CI_URL/refs/heads/$GITLAB_CI_REF_NAME/ext/.gitlab-ci_.yml'
+    rules:
+      - if: $GITLAB_CI_URL
+  - remote: '$GITLAB_CI_URL/refs/heads/$GITLAB_CI_REF_NAME/ext/.gitlab-ci_py.yml'
+    rules:
+      - if: $GITLAB_CI_URL
+  - remote: '$GITLAB_CI_URL/refs/heads/$GITLAB_CI_REF_NAME/ext/.build_docker_image.yml'
+    rules:
+      - if: $GITLAB_CI_URL
+  - project: '$GITLAB_CI_PATH'
+    ref: '$GITLAB_CI_REF_NAME'
+    file: '/ext/.gitlab-ci_.yml'
+    rules:
+      - if: $GITLAB_CI_PATH
   - project: '$GITLAB_CI_PATH'
     ref: '$GITLAB_CI_REF_NAME'
     file: '/ext/.gitlab-ci_py.yml'
+    rules:
+      - if: $GITLAB_CI_PATH
   - project: '$GITLAB_CI_PATH'
     ref: '$GITLAB_CI_REF_NAME'
     file: '/ext/.build_docker_image.yml'
+    rules:
+      - if: $GITLAB_CI_PATH
 
 workflow:
   rules:
