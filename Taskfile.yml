@@ -13,7 +13,7 @@ vars:
     --build-arg BASE_IMAGE_NAME --build-arg BASE_IMAGE_TAG
   DOCKER_RUN_ARGS: >-
     -e HTTP_PROXY -e HTTPS_PROXY -e NO_PROXY
-    -v $(pwd)/:/build/
+    -v $(pwd)/:/build/ -w /build/
 
 
 includes:
@@ -155,7 +155,7 @@ tasks:
       - >-
           docker run --rm -it {{.DOCKER_RUN_ARGS}}
           koalaman/shellcheck-alpine:latest
-          sh -c "shellcheck --version && cd /build && echo 'Checking...' && find scripts -name '*.sh' -exec shellcheck {} + && echo 'Done'"
+          sh -c "shellcheck --version && echo 'Checking...' && find scripts -name '*.sh' -exec shellcheck {} + && echo 'Done'"
 
   dockerfile-check:
     desc: Run static analysis tool (linter) for Dockerfile
@@ -163,7 +163,7 @@ tasks:
       - >-
           docker run --rm -it {{.DOCKER_RUN_ARGS}}
           hadolint/hadolint:latest-alpine
-          sh -c 'hadolint --version && cd /build && echo "Checking..." && hadolint Dockerfile && echo "Done"'
+          sh -c 'hadolint --version && echo "Checking..." && hadolint Dockerfile && echo "Done"'
 
   init-git:
     desc: Initialize git repository
@@ -217,9 +217,8 @@ tasks:
     cmds:
       - |
         docker run --rm -it {{.DOCKER_RUN_ARGS}} \
-        -e IMAGE_TAGS=${IMAGE_TAG} \
-        local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} bash \
-        -c 'cp -R /build/{src,scripts,tests} $HOME/app && cd $HOME/app && ./scripts/test.sh'
+        --entrypoint "./scripts/test-image.sh" \
+        local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG}
 
   build-and-test:
     desc: Build and test docker image
@@ -233,8 +232,7 @@ tasks:
       - task: build-image
       - |
         docker run --rm -it {{.DOCKER_RUN_ARGS}} \
-        local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} bash \
-        -c "cd /build && bash"
+        local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} sh
 
   bump-calver:
     desc: Bump Cal version
@@ -273,7 +271,7 @@ tasks:
         docker run --rm -it {{.DOCKER_RUN_ARGS}}
         --entrypoint ""
         ghcr.io/orhun/git-cliff/git-cliff:latest
-        sh -c "git-cliff --version && cd /build && git-cliff -r . --current -o /tmp/CHANGELOG.md && echo 'Changelog generated' && cat /tmp/CHANGELOG.md"
+        sh -c "git-cliff --version && git-cliff -r . -o /tmp/CHANGELOG.md && echo 'Changelog generated' && cat /tmp/CHANGELOG.md"
 
   create-gh-release:
     desc: Create GitHub release
