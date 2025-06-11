@@ -32,10 +32,7 @@ jobs:
   setup_build_env:
     name: Setup build environment
     runs-on: ubuntu-latest
-
     outputs:
-      base_image_name: ${{ steps.setup.outputs.BASE_IMAGE_NAME }}
-      base_image_tag: ${{ steps.setup.outputs.BASE_IMAGE_TAG }}
       build_image_name: ${{ steps.setup.outputs.BUILD_IMAGE_NAME }}
       build_image_tags: ${{ steps.setup.outputs.BUILD_IMAGE_TAGS }}
     steps:
@@ -44,21 +41,29 @@ jobs:
       - name: Setup build environment
         id: setup
         run: |
+          echo "Setting up build environment..."
+          # Check if the base image name is provided from workflow_dispatch user's input and replace it in the .build.env file
+          if [ -n "${{ inputs.base_image_tag }}" ]; then
+            sed -i 's/^BASE_IMAGE_TAG=.*/BASE_IMAGE_TAG=${{ inputs.base_image_tag }}/' .github/.build.env
+          fi
+          # Check if the image tag is provided from workflow_dispatch user's input
+          if [ -n "${{ inputs.build_image_tags }}" ]; then
+            sed -i 's/^BUILD_IMAGE_TAGS=.*/BUILD_IMAGE_TAGS=${{ inputs.build_image_tags }}/' .github/.build.env
+          fi
 
           # This file 'build.env' should contain the environment variables used in the Dockerfile and the build process.
           set -a; source .github/.build.env; set +a;
-          echo "BASE_IMAGE_NAME=$BASE_IMAGE_NAME" >> $GITHUB_OUTPUT
           echo "BUILD_IMAGE_NAME=$BUILD_IMAGE_NAME" >> $GITHUB_OUTPUT
-
-          # Set the base image name
-          BASE_IMAGE_TAG=$(if [ -n "${{ inputs.base_image_tags }}" ]; then echo ${{ inputs.base_image_tags }}; else echo $BASE_IMAGE_TAG; fi)
-          echo "BASE_IMAGE_TAG=$BASE_IMAGE_TAG" >> $GITHUB_OUTPUT
-
-          # Check if the image tag is provided from workflow_dispatch user's input
-          BUILD_IMAGE_TAGS=$(if [ -n "${{ inputs.build_image_tags }}" ]; then echo ${{ inputs.build_image_tags }}; else echo $BUILD_IMAGE_TAGS; fi)
           echo "BUILD_IMAGE_TAGS=$BUILD_IMAGE_TAGS" >> $GITHUB_OUTPUT
 
-
+      - name: Upload .build.env as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: .build.env-${{ github.sha }}
+          path: .github/.build.env
+          retention-days: 1
+          overwrite: true
+          include-hidden-files: true
 
 
   build:
@@ -69,8 +74,6 @@ jobs:
     needs: setup_build_env
     uses: alexchay/github-ci/.github/workflows/build_and_push_image_to_ghcr.yml@main
     with:
-      event_name: ${{ github.event_name }}
-      base_image_name: ${{ needs.setup_build_env.outputs.base_image_name }}
-      base_image_tag: ${{ needs.setup_build_env.outputs.base_image_tag }}
+      build_env_file: .build.env-${{ github.sha }}
       build_image_name: ${{ needs.setup_build_env.outputs.build_image_name }}
       build_image_tags: ${{ needs.setup_build_env.outputs.build_image_tags }}
