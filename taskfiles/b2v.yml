@@ -17,3 +17,48 @@ tasks:
     desc: Show the next version
     cmds:
       - uvx bump-my-version show --increment minor new_version
+
+  bump-calver:
+    desc: Bump Cal version
+    cmds:
+      - task: bump-calver-patch
+
+  bump-calver-patch:
+    desc: Bump Cal version
+    cmds:
+      - uvx bump-my-version bump --verbose patch
+
+  bump-calver-release:
+    desc: Bump Cal version
+    cmds:
+      - uvx bump-my-version bump --verbose release
+
+  bump-major:
+    desc: Bump major version
+    cmds:
+      - uvx bump-my-version bump --verbose major
+
+  bump-minor:
+    desc: Bump minor version
+    cmds:
+      - uvx bump-my-version bump --verbose minor
+
+  bump-patch:
+    desc: Bump patch version
+    cmds:
+      - uvx bump-my-version bump --verbose --dry-run --allow-dirty --patch
+
+  bump-major-dry:
+    desc: Bump major version
+    cmds:
+      - uvx bump-my-version bump --verbose --dry-run --allow-dirty major
+
+  bump-minor-dry:
+    desc: Bump minor version
+    cmds:
+      - uvx bump-my-version bump --verbose --dry-run --allow-dirty minor
+
+  bump-patch-dry:
+    desc: Bump patch version
+    cmds:
+      - uvx bump-my-version bump --verbose --dry-run --allow-dirty patch

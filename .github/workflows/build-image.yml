@@ -32,6 +32,7 @@ jobs:
   setup_build_env:
     name: Setup build environment
     runs-on: ubuntu-latest
+
     outputs:
       build_image_name: ${{ steps.setup.outputs.BUILD_IMAGE_NAME }}
       build_image_tags: ${{ steps.setup.outputs.BUILD_IMAGE_TAGS }}

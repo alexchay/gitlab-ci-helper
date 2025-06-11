@@ -404,6 +404,9 @@ post_commit_hooks = []
 filename = "src/gitlab_ci/__init__.py"
 
 [[tool.bumpversion.files]]
+filename = ".github/.build.env"
+
+[[tool.bumpversion.files]]
 filename = ".gitlab/.build.env.yml"
 
 

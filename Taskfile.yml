@@ -234,36 +234,6 @@ tasks:
         docker run --rm -it {{.DOCKER_RUN_ARGS}} \
         local/${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG} sh
 
-  bump-calver:
-    desc: Bump Cal version
-    cmds:
-      - task: bump-calver-patch
-
-  bump-calver-patch:
-    desc: Bump Cal version
-    cmds:
-      - uvx bump-my-version bump --verbose patch
-
-  bump-calver-release:
-    desc: Bump Cal version
-    cmds:
-      - uvx bump-my-version bump --verbose release
-
-  bump-major:
-    desc: Bump major version
-    cmds:
-      - uvx bump-my-version bump --verbose major
-
-  bump-minor:
-    desc: Bump minor version
-    cmds:
-      - uvx bump-my-version bump --verbose minor
-
-  bump-patch:
-    desc: Bump patch version
-    cmds:
-      - uvx bump-my-version bump --verbose patch
-
   changelog:
     desc: Generate changelog
     cmds:
