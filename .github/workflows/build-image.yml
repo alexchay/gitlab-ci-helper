@@ -1,0 +1,76 @@
+name: Image Build
+description: Build and push Docker image to GitHub Container Registry
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*.*.*"
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      base_image_tag:
+        description: "Base image tag to use for the build (e.g., 3.12.2-slim)"
+        required: false
+        type: string
+        default: "3.12-slim"
+      build_image_tags:
+        description: "Comma-separated list of tags to apply to the image (e.g., 3.12.2-slim, latest)"
+        required: false
+        type: string
+        default: "3.12-slim"
+
+concurrency:
+  group: "${{ github.repository_id }}"
+
+jobs:
+  setup_build_env:
+    name: Setup build environment
+    runs-on: ubuntu-latest
+
+    outputs:
+      base_image_name: ${{ steps.setup.outputs.BASE_IMAGE_NAME }}
+      base_image_tag: ${{ steps.setup.outputs.BASE_IMAGE_TAG }}
+      build_image_name: ${{ steps.setup.outputs.BUILD_IMAGE_NAME }}
+      build_image_tags: ${{ steps.setup.outputs.BUILD_IMAGE_TAGS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup build environment
+        id: setup
+        run: |
+
+          # This file 'build.env' should contain the environment variables used in the Dockerfile and the build process.
+          set -a; source .github/.build.env; set +a;
+          echo "BASE_IMAGE_NAME=$BASE_IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "BUILD_IMAGE_NAME=$BUILD_IMAGE_NAME" >> $GITHUB_OUTPUT
+
+          # Set the base image name
+          BASE_IMAGE_TAG=$(if [ -n "${{ inputs.base_image_tags }}" ]; then echo ${{ inputs.base_image_tags }}; else echo $BASE_IMAGE_TAG; fi)
+          echo "BASE_IMAGE_TAG=$BASE_IMAGE_TAG" >> $GITHUB_OUTPUT
+
+          # Check if the image tag is provided from workflow_dispatch user's input
+          BUILD_IMAGE_TAGS=$(if [ -n "${{ inputs.build_image_tags }}" ]; then echo ${{ inputs.build_image_tags }}; else echo $BUILD_IMAGE_TAGS; fi)
+          echo "BUILD_IMAGE_TAGS=$BUILD_IMAGE_TAGS" >> $GITHUB_OUTPUT
+
+
+
+
+  build:
+    name: 'Build ${{ needs.setup_build_env.outputs.build_image_name }}:${{ needs.setup_build_env.outputs.build_image_tags }}'
+    permissions:
+      contents: read
+      packages: write
+    needs: setup_build_env
+    uses: alexchay/github-ci/.github/workflows/build_and_push_image_to_ghcr.yml@main
+    with:
+      event_name: ${{ github.event_name }}
+      base_image_name: ${{ needs.setup_build_env.outputs.base_image_name }}
+      base_image_tag: ${{ needs.setup_build_env.outputs.base_image_tag }}
+      build_image_name: ${{ needs.setup_build_env.outputs.build_image_name }}
+      build_image_tags: ${{ needs.setup_build_env.outputs.build_image_tags }}

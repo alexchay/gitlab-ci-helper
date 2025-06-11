@@ -1,0 +1,19 @@
+name: Shell scripts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/**/*.sh
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/**/*.sh
+
+jobs:
+  validate-shellscripts:
+    name: Shell scripts validation
+    uses: alexchay/github-ci/.github/workflows/validate_shellscripts.yml@main

@@ -1,0 +1,20 @@
+# a matrix list of variables used in the container build process
+include:
+  - PYTHON_VERSION: "3.10"
+    BASE_IMAGE_NAME: ghcr.io/alexchay/python-base
+    BASE_IMAGE_TAG: "3.10-slim"
+    BUILD_IMAGE_NAME: "gitlab-ci"
+    BUILD_IMAGE_TAG: "3.10-slim"
+    BUILD_IMAGE_TAGS: "3.10"
+  - PYTHON_VERSION: "3.11"
+    BASE_IMAGE_NAME: ghcr.io/alexchay/python-base
+    BASE_IMAGE_TAG: "3.11-slim"
+    BUILD_IMAGE_NAME: "gitlab-ci"
+    BUILD_IMAGE_TAG: "3.11-slim"
+    BUILD_IMAGE_TAGS: "3.11"
+  - PYTHON_VERSION: "3.12"
+    BASE_IMAGE_NAME: ghcr.io/alexchay/python-base
+    BASE_IMAGE_TAG: "3.12-slim"
+    BUILD_IMAGE_NAME: "gitlab-ci"
+    BUILD_IMAGE_TAG: "3.12-slim"
+    BUILD_IMAGE_TAGS: "3.12"

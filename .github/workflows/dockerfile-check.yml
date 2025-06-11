@@ -1,0 +1,19 @@
+name: Dockerfile
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+  pull_request:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+
+jobs:
+  validate-dockerfile:
+    name: Dockerfile validation
+    uses: alexchay/github-ci/.github/workflows/validate_dockerfile.yml@main
