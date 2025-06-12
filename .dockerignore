@@ -16,8 +16,6 @@ cache/img
 **/.DS_Store
 docker-compose.yml
 Dockerfile
-LICENSE
-README.md
 Taskfile.yml
 .hadolint.yaml
 .shellcheckrc
