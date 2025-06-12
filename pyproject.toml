@@ -395,7 +395,9 @@ moveable_tags = []
 commit_args = ""
 setup_hooks = []
 pre_commit_hooks = [
-    "uv tool run git-cliff -r . -l --tag $BVHOOK_NEW_VERSION --prepend CHANGELOG.md",
+    "uv lock",
+    "git add uv.lock",
+    "uv tool run git-cliff -r . -u --tag $BVHOOK_NEW_VERSION --prepend CHANGELOG.md",
     "git add CHANGELOG.md",
 ]
 post_commit_hooks = []
