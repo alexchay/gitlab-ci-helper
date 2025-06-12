@@ -33,11 +33,11 @@ FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
 LABEL \
     org.opencontainers.image.authors="Alexander Chaykovskiy  https://github.com/alexchay" \
-    org.opencontainers.image.created=2025-06-07T14:35:27Z \
+    org.opencontainers.image.created=2025-06-12T09:10:28Z \
     org.opencontainers.image.url=https://github.com/alexchay/gitlab-ci-helper \
     org.opencontainers.image.documentation=https://github.com/alexchay/gitlab-ci-helper\
     org.opencontainers.image.source=https://github.com/alexchay/gitlab-ci-helper \
-    org.opencontainers.image.version=0.2.0 \
+    org.opencontainers.image.version=0.3.0 \
     org.opencontainers.image.licenses=MIT
 
 
