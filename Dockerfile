@@ -6,7 +6,9 @@ FROM ghcr.io/astral-sh/uv:python$PYTHON_VERSION-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_PYTHON_DOWNLOADS=never
+    UV_NO_MANAGED_PYTHON=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_CACHE_DIR=root/.cache/uv
 
 WORKDIR /app
 #COPY pyproject.toml uv.lock /app/
@@ -26,8 +28,8 @@ RUN \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-default-groups --no-dev --no-editable
 
-FROM gcr.io/go-containerregistry/crane AS crane
-FROM hashicorp/envconsul AS envconsul
+FROM gcr.io/go-containerregistry/crane:098045d5e61ff426a61a0eecc19ad0c433cd35a9 AS crane
+FROM hashicorp/envconsul:0.13 AS envconsul
 
 FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
