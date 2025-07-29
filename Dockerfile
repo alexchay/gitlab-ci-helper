@@ -2,7 +2,7 @@ ARG PYTHON_VERSION="defval"
 ARG BASE_IMAGE_NAME="defval"
 ARG BASE_IMAGE_TAG="defval"
 
-FROM ghcr.io/astral-sh/uv:python$PYTHON_VERSION-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.7-python$PYTHON_VERSION-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -18,7 +18,8 @@ RUN \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --no-default-groups --no-dev --no-editable \
-    && uv tool install go-task-bin
+    && uv tool install go-task-bin \
+    && whereis task
 
 COPY src /app/src
 COPY README.md LICENSE /app/
