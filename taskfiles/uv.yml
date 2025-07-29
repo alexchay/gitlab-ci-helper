@@ -8,13 +8,13 @@ tasks:
     cmds:
       - uv self version
 
-  bin-install:
+  install:
     desc: Install UV
     cmds:
       - curl -LsSf https://astral.sh/uv/install.sh | sh
       - task: version
 
-  bin-remove:
+  remove:
     desc: Remove UV
     cmds:
       - |
@@ -25,9 +25,14 @@ tasks:
           # Remove the uv and uvx binaries
           rm ~/.local/bin/uv ~/.local/bin/uvx
 
-  bin-update:
+  update:
     desc: Update UV
     cmds:
       - task: version
       - uv self update
       - task: version
+
+  list-installed-python:
+    desc: List installed Python versions
+    cmds:
+      - uv python list --only-installed
