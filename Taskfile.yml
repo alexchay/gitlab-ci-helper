@@ -27,8 +27,6 @@ includes:
     taskfile: ./taskfiles/mypy.yml
   pre-commit:
     taskfile: ./taskfiles/pre-commit.yml
-  pylint:
-    taskfile: ./taskfiles/pylint.yml
   pytest:
     taskfile: ./taskfiles/pytest.yml
   ruff:
@@ -107,7 +105,6 @@ tasks:
   static-analysis:
     desc: Run code formatter check, linting, static type analysis
     cmds:
-      - task: pylint:check
       - task: ruff:check
       - task: mypy:check
       - task: black:check-dry
@@ -133,9 +130,6 @@ tasks:
   test-suite-py3.*:
     desc: Run all tests with Python 3.*
     cmds:
-      - task: pylint:check
-        vars:
-          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
       - task: ruff:check
         vars:
           SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}

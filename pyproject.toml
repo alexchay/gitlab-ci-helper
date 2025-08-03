@@ -51,8 +51,6 @@ default-groups = []
 dev = [
     "ruff >=0.7.4, <1.0.0",
     "black >=23.3.0, <24.0.0",
-    "pylint >=2.8.3, <3.0.0",
-    "pylint-pytest >=1.1.2, <2.0.0",
     "mypy >=1.16.0, <2.0.0",
     "mypy-extensions >=1.0.0, <2.0.0",
     "types-termcolor == 1.1.6.2",
@@ -91,6 +89,7 @@ docs = [
     "python-frontmatter",
 ]
 
+
 [tool.ruff]
 indent-width = 4
 line-length = 140
@@ -117,10 +116,14 @@ indent-style = "space"
 line-ending = "lf"
 quote-style = "double"
 docstring-code-format = true
+preview = true
 
 [tool.ruff.lint]
+# Disable all rules by default
+# and then selectively enable the ones we want.
 select = ["ALL"]
 preview = true
+# Enable specific rules in addition to those configured by select
 extend-select = [
     "E",        # PyCodeStyle errors
     "W",        # PyCodeStyle warnings
@@ -128,25 +131,30 @@ extend-select = [
     "Q",        # PyCodeStyle quality errors
     "T",        # PyCodeStyle type hints
     "F",        # PyFlakes errors
-    "I",        # Sort imports (handled by isort)
+    "I",        # Sort imports
     "C",        # flake8-comprehensions
-    "N",        # PEP8 naming
+    "S",        # flakeu-bandit
+    "A",        # flake8-builtins
     "B",        # flake8-bugbear
+    "N",        # PEP8 naming
     "BLE",      # flake8-blind except
     "DOC",      # pydoclint
-    "S",        # flakeu-bandit
-    "UP",       #
+    "UP",       # pyupgrade
     "C4",       # Catch incorrect use of comprehensions
     "RUF",      # Ruff-specific rules
     "NPY",      # NumPy-specific rules
     "PD",       # Pandas-vet
     "PGH",      # PyGrep hooks
     "ANN",      # flake8-annotations
+    "YTT",      # flake8-yapf
+    "T10",      # flake8-debugger
+    "TCH",      # Flake8 type-checking
+    "TRY",      # flake8-try-except
+    "SIM",      # flake8-simplify
     "C90",      # McCabe complexity
     "PLC",      # Pylint conventions
     "PLE",      # Pylint errors
     "PLW",      # Pylint warnings
-    "TCH",      # Flake8 type-checking
 ]
 ignore = [
     "CPY001",   # Missing copyright notice at top of file
@@ -155,15 +163,21 @@ ignore = [
     "S101",     # Use of `assert` detected
     "DOC501",   # Raised exception `...` missing from docstring
     "COM812",   # Trailing comma missing
+    #"COM819",   # Trailing comma not required
     #"D100",     # Missing docstring in public module
     #"D104",     # Missing docstring in public f
     #"D105",     # undocumented-magic-method
     #"D106",     # undocumented-public-nested-class
-    #"D107",     # undocumented-public-init
+    #"D107",     # undocumented-public-init conflicts with DOC301
+    #"D200",     # fits-on-one-line
     #"D203",     # blank line required before cl
+    #"D206",
     #"D211",     # no-blank-line-before-class
     #"D213",     # multi-line-summary-second-lir
-    #"D200",     # fits-on-one-line
+    #"D300",
+    #"E111",
+    #"E114",
+    #"E117",
     #"EM101",    # raw-string-in-exception
     #"FIX002",   # line-contains-todo
     #"ISC001",   # Conflicts with formatter ruff
@@ -182,7 +196,15 @@ ignore = [
     #"S602",     # subprocess-popen-with-shell-equals-true
     #"PD011",    # pandas-use-of-dot-values
     #"PLC0415",  # import-outside-toplevel
+    #'E731',     # Do not assign a lambda expression, use a def
     #"PLW1641",  # eq-without-hash
+    # "ISC001",  # Conflicts with formatter ruff
+    # "ISC002",  # Conflicts with formatter ruff
+    # "Q000",    # Unused variable
+    # "Q001",    # Unused import
+    # "Q002",    # Unused argument
+    # "Q003",    # Unused function
+    # "W191",    # Indentation contains tabs
 ]
 
 fixable = ["ALL"]
@@ -197,15 +219,16 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 typing-modules = ["typing", "types", "typing_extensions", "mypy", "mypy_extensions"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/test_*.py" = [
-    "ANN",      # Ignore missing type annotations in tests
-    "S101",     # Allow `assert`
-    "TRY003",   # raise-vanilla-args
-    "D100",     # Missing docstring in public module
-    "D103",     # Missing docstring in public function
-    "D104",     # Missing docstring in public package
-    "ANN201",   # Missing return type annotation for public function
-    "I001",     # Import block is un-sorted or un-formatted
+"*/test_*.py" = [
+    "ANN",    # Ignore missing type annotations in tests
+    "S101",   # Allow `assert`
+    "TRY003", # raise-vanilla-args
+    "D100",   # Missing docstring in public module
+    "D103",   # Missing docstring in public function
+    "D104",   # Missing docstring in public package
+    "ANN201", # Missing return type annotation for public function
+    "I001",   # Import block is un-sorted or un-formatted
+    "S603",   # subprocess-popen-with-shell-equals-true
     #"PLR0913",
     #"PLR0915",
     #"PLR2004",
@@ -217,9 +240,11 @@ typing-modules = ["typing", "types", "typing_extensions", "mypy", "mypy_extensio
     #"S105"
     #"S106",
 ]
+"noxfile.py" = ["S101"]
+"**/conftest.py" = ["S101"]
 "__init__.py" = [
-    "F401",     # Ignore unused imports in __init__.py
-    "D104"
+    "F401", # Ignore unused imports in __init__.py
+    "D104",
 ]
 
 [tool.ruff.lint.mccabe]
@@ -229,6 +254,7 @@ max-complexity = 10
 [tool.ruff.lint.isort]
 order-by-type = true
 known-third-party = ["fastapi", "pydantic", "starlette"]
+required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -239,6 +265,7 @@ allow-star-arg-any = true
 mypy-init-return = true
 suppress-dummy-args = true
 suppress-none-returning = true
+
 
 [tool.black]
 line-length = 140
