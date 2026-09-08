@@ -30,7 +30,7 @@ RUN \
     uv sync --locked --no-default-groups --no-dev --no-editable
 
 FROM gcr.io/go-containerregistry/crane:098045d5e61ff426a61a0eecc19ad0c433cd35a9 AS crane
-FROM hashicorp/envconsul:0.13 AS envconsul
+FROM hashicorp/envconsul:0.14 AS envconsul
 
 FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
