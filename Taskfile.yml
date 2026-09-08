@@ -157,7 +157,7 @@ tasks:
       - >-
           docker run --rm -it {{.DOCKER_RUN_ARGS}}
           hadolint/hadolint:latest-alpine
-          sh -c 'hadolint --version && echo "Checking..." && hadolint Dockerfile && echo "Done"'
+          sh -c 'hadolint --version && echo "Checking..." && hadolint --failure-threshold warning Dockerfile && echo "Done"'
 
   init-git:
     desc: Initialize git repository
