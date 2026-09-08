@@ -37,7 +37,7 @@ jobs:
       build_image_name: ${{ steps.setup.outputs.BUILD_IMAGE_NAME }}
       build_image_tags: ${{ steps.setup.outputs.BUILD_IMAGE_TAGS }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup build environment
         id: setup
