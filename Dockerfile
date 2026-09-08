@@ -29,7 +29,7 @@ RUN \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-default-groups --no-dev --no-editable
 
-FROM gcr.io/go-containerregistry/crane:098045d5e61ff426a61a0eecc19ad0c433cd35a9 AS crane
+FROM gcr.io/go-containerregistry/crane:8a72a424fdecb4caa14f2d525e5d2503331442b5 AS crane
 FROM hashicorp/envconsul:0.14 AS envconsul
 
 FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
