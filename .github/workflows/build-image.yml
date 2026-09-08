@@ -58,7 +58,7 @@ jobs:
           echo "BUILD_IMAGE_TAGS=$BUILD_IMAGE_TAGS" >> $GITHUB_OUTPUT
 
       - name: Upload .build.env as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: .build.env-${{ github.sha }}
           path: .github/.build.env
