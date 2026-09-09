@@ -26,10 +26,9 @@ def test_generate_config_from_template(template_file, data_file):
 
         generate_config_from_template(template_file, data_file, target_file)
 
-        with Path(target_file).open(encoding="utf-8") as f:
-            generated_config = f.read()
+        generated_config = Path(target_file).read_text(encoding="utf-8")
 
-        print(generated_config)  # noqa: T201
+        print(generated_config)  # ruff: ignore[print]
 
         assert 'secret {\n    path = "kv/netbox/api/read"\n    format = "netbox_{{ key }}"\n    no_prefix = true\n}' in generated_config
 
