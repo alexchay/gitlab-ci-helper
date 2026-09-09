@@ -1,0 +1,38 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+  list-sessions:
+    desc: List nox sessions
+    cmds:
+      - set -x && {{.SET_VENV}} nox --list-sessions
+
+  clean:
+    desc: Remove all Nox virtualenvs
+    cmds:
+      - set -x && rm -rf .nox
+
+  tests:
+    desc: Run session 'tests'
+    cmds:
+      - set -x && {{.SET_VENV}} nox -s tests -- -vv -s -l --import-mode prepend
+
+  coverage:
+    desc: Run session 'coverage'
+    cmds:
+      - set -x && {{.SET_VENV}} nox -r -s coverage
+
+  typeguard:
+    desc: Run session 'typeguard'
+    cmds:
+      - set -x && {{.SET_VENV}} nox -r -s typeguard
+
+  mypy:
+    desc: Run session 'mypy'
+    cmds:
+      - set -x && {{.SET_VENV}} nox -r -s mypy
+
+  pre-commit:
+    desc: Run session 'pre-commit'
+    cmds:
+      - set -x && {{.SET_VENV}} nox -r -s pre-commit

@@ -1,14 +1,23 @@
 # https://taskfile.dev
 version: "3"
-
 tasks:
   install:
     desc: Install pre-commit hooks
     cmds:
       - set -x && {{.SET_VENV}} pre-commit install
-      - set -x && {{.SET_VENV}} pre-commit install --hook-type commit-msg
+      - set -x && {{.SET_VENV}} pre-commit install --hook-type pre-commit --hook-type commit-msg
+
+  autoupdate:
+    desc: Update pre-commit hooks to the latest versions
+    cmds:
+      - set -x && {{.SET_VENV}} pre-commit autoupdate
 
   run:
-    desc: Run pre-commit hooks
+    desc: Run pre-commit on all files
     cmds:
       - set -x && {{.SET_VENV}} pre-commit run
+
+  run-all-files:
+    desc: Run pre-commit on all files
+    cmds:
+      - set -x && {{.SET_VENV}} pre-commit run --all-files

@@ -19,21 +19,20 @@ vars:
 includes:
   b2v:
     taskfile: ./taskfiles/b2v.yml
-  black:
-    taskfile: ./taskfiles/black.yml
   docs:
     taskfile: ./taskfiles/mkdocs.yml
+  uv:
+    taskfile: ./taskfiles/uv.yml
+  ruff:
+    taskfile: ./taskfiles/ruff.yml
+  pytest:
+    taskfile: ./taskfiles/pytest.yml
   mypy:
     taskfile: ./taskfiles/mypy.yml
   pre-commit:
     taskfile: ./taskfiles/pre-commit.yml
-  pytest:
-    taskfile: ./taskfiles/pytest.yml
-  ruff:
-    taskfile: ./taskfiles/ruff.yml
-  uv:
-    taskfile: ./taskfiles/uv.yml
-
+  nox:
+    taskfile: ./taskfiles/nox.yml
 
 tasks:
   env:
@@ -43,48 +42,58 @@ tasks:
         set -a; source .env; set +a;
         env | grep -E '(HOME|PATH|IMAGE|DOCKER|TAG|PYTHON|REGISTRY|URL|CI_)'
 
-  install:
-    desc: Install current and required dependencies
+  env-info:
+    desc: Print environment info
     cmds:
-      - uv sync --locked --no-default-groups --no-dev --no-editable
-      - task: export
+      - task: uv:env-info
+    silent: true
+
+  export:
+    desc: Export dependencies
+    cmds:
+      - echo "Exporting dependencies to requirements.txt"
+      - uv export -o requirements.txt --no-install-project --no-default-groups --no-hashes --no-header --no-editable --quiet
+
+  install:
+    desc: Install current project and required dependencies
+    cmds:
+      - echo "Installing current project and required dependencies"
+      - uv sync --no-editable --active --all-extras
+
+  install-inexact:
+    desc: Install current project and required dependencies, also do not remove extraneous packages present in the environment
+    cmds:
+      - echo "Installing current project and required dependencies"
+      - uv sync --no-editable --active --all-extras --inexact
+
+  install-only-main:
+    desc: Install only main required dependencies
+    cmds:
+      - echo "Installing only main dependencies"
+      - uv sync --no-default-groups --no-dev --active --all-extras
+
+  install-with-test:
+    desc: Install required dependencies with test dependencies
+    cmds:
+      - echo "Install required dependencies with test dependencies"
+      - uv sync --group test --active --all-extras --inexact
 
   install-all:
     desc: Install all dependencies including the current project
     cmds:
-      - uv sync --all-groups
+      - echo "Installing all dependencies including the current project"
+      - uv sync --all-groups --active --all-extras
 
   install-only-deps:
     desc: Install only the dependencies and not including the current project
     cmds:
       - uv sync --no-install-project --all-groups
 
-  install-only-main:
-    desc: Install required dependencies
-    cmds:
-      - uv sync --no-install-project --no-default-groups --no-dev
-      - task: export
-
-  install-with-dev:
-    desc: Install required dependencies
-    cmds:
-      - uv sync --group dev
-
-  install-with-test:
-    desc: Install required dependencies
-    cmds:
-      - uv sync --group test
-
   install-with-devtest:
     desc: Install required dependencies
     cmds:
-      - uv sync --group dev --group test
-
-  export:
-    desc: Export dependencies
-    cmds:
-      - uv export -o requirements.txt --no-install-project --no-default-groups --no-hashes --no-header --no-editable --quiet
-      # - poetry export -f requirements.txt --output requirements.txt --without-hashes --only main
+      - echo "Install required dependencies with test dependencies"
+      - uv sync --group test --group dev --active --all-extras --inexact
 
   clean:
     desc: Clean up the installed dependencies
@@ -100,14 +109,49 @@ tasks:
   update:
     desc: Update dependencies
     cmds:
+      - echo "Updating dependencies"
       - uv sync --no-install-project --all-groups --upgrade
+
+  init-git:
+    desc: Initialize git repository
+    cmds:
+      - git init
+      - git add LICENSE
+      - "git commit -m 'chore: Initial commit'"
+      - git branch -M main
+
+  init:
+    desc: Initialize project
+    cmds:
+      - task: init-git
+      - task: install
+      - task: pre-commit:install
+
+  activate-venv:
+    desc: Activate virtual environment
+    cmds:
+      - echo "To activate the virtual environment, run 'source .venv/bin/activate' in your shell."
+
+  build:
+    desc: Build package
+    cmds:
+      -  uv build --sdist --wheel --verbose
+
+  run:
+    desc: Run the main application
+    deps: [install-inexact]
+    cmds:
+      - uv run gitlab-ci
 
   static-analysis:
     desc: Run code formatter check, linting, static type analysis
     cmds:
+      - echo "Running static analysis"
+      - task: install-with-devtest
+      - task: install-inexact
       - task: ruff:check
+      - task: ruff:format
       - task: mypy:check
-      - task: black:check-dry
 
   test-shell:
     desc: Run shell scripts tests
@@ -117,9 +161,8 @@ tasks:
   test-suite:
     desc: Run all tests
     cmds:
-      - task: install-with-devtest
       - task: static-analysis
-      - task: pytest:all-cov
+      - task: pytest:all-nocov
 
   test-vault:
     desc: Run vault tests
@@ -133,15 +176,18 @@ tasks:
       - task: ruff:check
         vars:
           SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
-      - task: mypy:check
+      - task: ruff:format
         vars:
           SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
-      - task: black:check-dry
+      - task: black:format
+        vars:
+          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+      - task: mypy:check
         vars:
           SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
       - task: pytest:all-cov
         vars:
-          SET_VENV: uv run --isolated --python 3.{{index .MATCH 0}}
+          SET_VENV: uv sync --python 3.{{index .MATCH 0}} --group test && uv run --python 3.{{index .MATCH 0}}
 
   shell-check:
     desc: Run static analysis tool (linter) for shell scripts
@@ -158,34 +204,6 @@ tasks:
           docker run --rm -it {{.DOCKER_RUN_ARGS}}
           hadolint/hadolint:latest-alpine
           sh -c 'hadolint --version && echo "Checking..." && hadolint --failure-threshold warning Dockerfile && echo "Done"'
-
-  init-git:
-    desc: Initialize git repository
-    cmds:
-      - git init
-      - git add LICENSE
-      - git commit -m "Initial commit"
-      - git branch -M main
-
-  init:
-    desc: Initialize project
-    cmds:
-      - task: init-git
-      - task: install
-      - task: pre-commit:install
-      - task: build
-      - task: test-suite
-      - task: default
-
-  build:
-    desc: Build package
-    cmds:
-      -  uv build --sdist --wheel --verbose
-
-  run:
-    desc: Run the main application
-    cmds:
-      -  uv run gitlab-ci
 
   build-image:
     desc: Build docker image

@@ -5,9 +5,14 @@ tasks:
   check:
     desc: Run linter Ruff
     cmds:
-      - set -x && {{.SET_VENV}} ruff check {{.CODE_DIRS}}
+      - set -x && {{.SET_VENV}} ruff check {{.CODE_DIRS}} --config=pyproject.toml
 
   check-fix:
     desc: Run linter Ruff
     cmds:
-      - set -x && {{.SET_VENV}} ruff check --fix {{.CODE_DIRS}}
+      - set -x && {{.SET_VENV}} ruff check --fix {{.CODE_DIRS}} --config=pyproject.toml
+
+  format:
+    desc: Run linter Ruff
+    cmds:
+      - set -x && {{.SET_VENV}} ruff format {{.CODE_DIRS}} --config=pyproject.toml

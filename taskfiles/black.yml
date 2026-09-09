@@ -2,13 +2,12 @@
 version: "3"
 
 tasks:
-  check:
+  format:
     desc: Run code formatter
     cmds:
-      - set -x && {{.SET_VENV}} black {{.CODE_DIRS}} --diff
+      - set -x && {{.SET_VENV}} black {{.CODE_DIRS}}
 
-  check-dry:
+  format-dry:
     desc: Verify code formatting
     cmds:
       - set -x && {{.SET_VENV}} black {{.CODE_DIRS}} --check --diff
-

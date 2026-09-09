@@ -2,37 +2,65 @@
 version: "3"
 
 tasks:
-
   version:
     desc: Check uv version
     cmds:
       - uv self version
 
-  install:
-    desc: Install UV
+  env-info:
+    desc: Show poetry environment info
     cmds:
-      - curl -LsSf https://astral.sh/uv/install.sh | sh
+      - uv pip list
+
+  install:
+    desc: Install uv
+    cmds:
+      - which uv || curl -LsSf https://astral.sh/uv/install.sh | sh
       - task: version
 
   remove:
-    desc: Remove UV
+    desc: Remove uv
     cmds:
       - |
-          # Clean up stored data
-          uv cache clean
-          rm -r "$(uv python dir)"
-          rm -r "$(uv tool dir)"
-          # Remove the uv and uvx binaries
-          rm ~/.local/bin/uv ~/.local/bin/uvx
+        # Clean up stored data
+        uv cache clean
+        rm -r "$(uv python dir)"
+        rm -r "$(uv tool dir)"
+        # Remove the uv and uvx binaries
+        rm ~/.local/bin/uv ~/.local/bin/uvx
 
   update:
-    desc: Update UV
+    desc: Update uv
     cmds:
       - task: version
       - uv self update
       - task: version
 
+  list:
+    desc: List uv tasks
+    cmds:
+      - uv pip list
+
   list-installed-python:
     desc: List installed Python versions
     cmds:
       - uv python list --only-installed
+
+  install-devtools:
+    desc: Install development tools which are not specific to a single project
+    deps: [install]
+    cmds:
+      - |
+        echo "Installing development tools..."
+
+  upgrade-devtools:
+    desc: Upgrade development tools which are not specific to a single project
+    cmds:
+      - |
+        uv self update
+        echo "Upgrading development tools..."
+
+  list-installed-tools:
+    desc: List installed tools
+    cmds:
+      - uv tool list

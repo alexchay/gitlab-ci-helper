@@ -4,5 +4,6 @@ version: "3"
 tasks:
   check:
     desc: Run static type checker mypy
+    deps: [":install-with-devtest"]
     cmds:
-      - set -x && {{.SET_VENV}} mypy --install-types --non-interactive --ignore-missing-imports {{.CODE_DIRS}}
+      - set -x && {{.SET_VENV}} mypy --install-types --non-interactive --ignore-missing-imports --config-file=pyproject.toml {{.CODE_DIRS}}
